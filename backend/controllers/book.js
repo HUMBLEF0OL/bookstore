@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const Book = require('../models/books');
 
 const getAllBooks = (req, res) => {
-    console.log("request received")
+    console.log("fetching all books")
     Book.find().sort({ publishedDate: -1 })
         .then(result => {
             res.send(result)
@@ -13,7 +13,7 @@ const getAllBooks = (req, res) => {
 
 const getBookById = async (req, res) => {
     const id = req.params.id;
-    console.log("id is sssssssssss", id, typeof id)
+    console.log("finding book for id:", id, typeof id)
     if (!isValidObjectId(id)) {
         res.status(404).send("Invalid ID")
     } else {
@@ -28,7 +28,7 @@ const getBookById = async (req, res) => {
 
 const getBookByIsbn = async (req, res) => {
     const isbnNumber = req.params.isbn;
-    console.log(("parsed result", parseInt(isbnNumber)))
+    console.log(("finding book for isbn:", parseInt(isbnNumber)))
     if (isNaN(isbnNumber)) {
         res.status(404).send("Please Enter a valid ISBN number")
     }
@@ -42,8 +42,58 @@ const getBookByIsbn = async (req, res) => {
     }
 }
 
+const postBook = async (req, res) => {
+    try {
+        console.log("pushing the book data for: ", req.body)
+        const newBook = new Book(req.body)
+        const result = await newBook.save();
+        if (!result) {
+            res.status(404).send("Failed to the Book!")
+        } else {
+            res.send("Operation Successful!")
+        }
+    } catch (err) {
+        res.status(404).json(err)
+    }
+
+}
+
+const updateBook = async (req, res) => {
+    try {
+        console.log("updating document with isbn:", req.params.isbn);
+        const result = await Book.findOneAndUpdate({ isbn: req.params.isbn }, req.body)
+        if (!result) {
+            res.status(404).send("Failed to Update the book!");
+        } else {
+            console.log("operation successful with result", result);
+            res.json({ data: result })
+        }
+    } catch (err) {
+        res.status(404).json(err)
+    }
+}
+
+const deleteBook = async (req, res) => {
+    try {
+        console.log("deleting the document with isbn: ", req, params.isbn);
+        const result = await Book.findByIdAndDelete({ isbn: req.params.isbn })
+        if (!result) {
+            res.status(404).send("Failed to Delete the book!");
+        } else {
+            res.json({
+                data: result
+            })
+        }
+    } catch (err) {
+        res.status(404).json(err);
+    }
+}
+
 module.exports = {
     getAllBooks,
     getBookById,
-    getBookByIsbn
+    getBookByIsbn,
+    postBook,
+    updateBook,
+    deleteBook
 }
