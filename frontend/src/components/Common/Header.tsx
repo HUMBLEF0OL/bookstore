@@ -53,7 +53,7 @@ const Header = () => {
 
     return (
         <Box sx={{ flexGrow: 1, zIndex: 1 }}>
-            <AppBar position='fixed'>
+            <AppBar position='sticky'>
                 <Toolbar sx={toolbarSx}>
                     <Link href={'/'} >
                         <Box sx={logoButtonSx}>
