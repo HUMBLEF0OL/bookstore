@@ -1,7 +1,8 @@
 "use client"
-import { Box, Button, Card, CardActions, CardContent, CardMedia, Pagination, Typography } from '@mui/material';
+import { AppBar, Box, Button, Card, CardActions, CardContent, CardMedia, InputBase, Pagination, Toolbar, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+import SearchIcon from '@mui/icons-material/Search';
 
 type bookType = {
     _id: string,
@@ -22,34 +23,31 @@ const LIMIT = 12;
 
 const page = () => {
     const router = useRouter();
-    const [data, setData] = useState<bookType[]>([]);
+    const [data, setData] = useState<{ books: bookType[], count: number }>({ books: [], count: 0 });
     const [page, setPage] = useState(1);
 
     useEffect(() => {
-        fetchData().then((result) => {
-            return result.json();
-        }).then(result => {
-            result = result.slice(0, 12);
-            console.log(result)
-            setData(result);
-        });
+        fetchData();
     }, [])
 
-    useEffect(() => {
-        console.log(page)
-    }, [page])
 
-    const fetchData = async () => {
-        const data = await fetch('http://localhost:5000/book')
-        return data;
+    const fetchData = async (nextPage = 1) => {
+        let data = await fetch(`http://localhost:5000/book?limit=${LIMIT}&offset=${nextPage}`)
+        const result = await data.json();
+        setData({
+            books: result.books,
+            count: result.totalCount
+        });
     }
 
     const handleClick = (isbn: string) => {
         router.push(`/books/${isbn}`)
     }
 
-    const hanldePageChange = (event: any, nextPage: number) => {
+    const handlePageChange = (event: any, nextPage: number) => {
+        console.log("next page is ", nextPage)
         setPage(nextPage);
+        fetchData(nextPage);
     }
 
     const boxSx = {
@@ -128,13 +126,31 @@ const page = () => {
         }
     }
 
+    const SearchBar = () => {
+        return (
+            <Box>
+                <SearchIcon />
+                <InputBase placeholder='Search...' inputProps={{ "aria-label": 'search' }} sx={{
+                    padding: '8px 8px 8px 0px',
+
+                }} />
+            </Box>
+        )
+    }
 
     return (
         <Box sx={boxSx}>
+            <Box sx={{ display: 'flex', columnGap: 1 }}>
+                <Button>
+                    Old to New
+                </Button>
+                <Button> A-Z ⬆️ | Z-A ⬇️</Button>
+                <SearchBar />
+            </Box >
             <Box sx={{ display: 'flex', flexDirection: 'flow', flexWrap: 'wrap', justifyContent: 'center' }}>
                 {
 
-                    data?.map((book, index) => {
+                    data.books.map((book, index) => {
                         return (
                             <Card key={index} sx={cardSx}>
                                 <CardMedia
@@ -162,12 +178,12 @@ const page = () => {
             </Box>
 
             <Pagination
-                count={10}
+                count={Math.ceil(data.count / LIMIT) || 1}
                 variant='outlined'
                 shape='rounded'
                 sx={paginationSx}
                 page={page}
-                onChange={hanldePageChange}
+                onChange={handlePageChange}
             />
         </Box>
     )
