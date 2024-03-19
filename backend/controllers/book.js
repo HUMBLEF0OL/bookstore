@@ -2,13 +2,19 @@ const { isValidObjectId } = require('mongoose');
 const mongoose = require('mongoose')
 const Book = require('../models/books');
 
-const getAllBooks = (req, res) => {
+const getAllBooks = async (req, res) => {
     console.log("fetching all books")
-    Book.find().sort({ publishedDate: -1 })
-        .then(result => {
-            res.send(result)
-        })
-        .catch(err => console.log(err))
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = parseInt(req.query.offset) || 1;
+
+    try {
+        // count total number of pages
+        const totalCount = await Book.countDocuments();
+        const books = await Book.find().skip((offset - 1) * limit).limit(limit);
+        res.json({ totalCount, books });
+    } catch (err) {
+        res.status(404).json(err);
+    }
 }
 
 const getBookById = async (req, res) => {
