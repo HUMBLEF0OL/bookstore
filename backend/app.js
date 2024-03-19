@@ -1,11 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bookRouter = require('./routes/book')
+const cors = require('cors')
 
 const app = express();
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json());
+app.use(cors());
 
 mongoose.connect('mongodb://0.0.0.0:27017/bookstore', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
