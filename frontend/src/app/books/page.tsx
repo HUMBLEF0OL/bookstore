@@ -1,7 +1,7 @@
 "use client"
-import { AppBar, Box, Button, Card, CardActions, CardContent, CardMedia, InputBase, Pagination, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, Button, Card, CardActions, CardContent, CardMedia, InputBase, Pagination, ToggleButton, Toolbar, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search';
 
 type bookType = {
@@ -21,18 +21,27 @@ type bookType = {
 
 const LIMIT = 12;
 
+const notFoundImage = 'https://c4.wallpaperflare.com/wallpaper/198/872/888/numbers-404-not-found-simple-background-minimalism-wallpaper-thumb.jpg';
+
 const page = () => {
     const router = useRouter();
     const [data, setData] = useState<{ books: bookType[], count: number }>({ books: [], count: 0 });
     const [page, setPage] = useState(1);
 
+    const [dateFilter, setDateFilter] = useState<'old' | 'new'>('old');
+
     useEffect(() => {
         fetchData();
     }, [])
+    useEffect(() => {
+        console.log(data);
+    }, [data])
 
 
-    const fetchData = async (nextPage = 1) => {
-        let data = await fetch(`http://localhost:5000/book?limit=${LIMIT}&offset=${nextPage}`)
+    const fetchData = async (nextPage = 1, searchString = '', sortDate = 'old') => {
+        // debugger
+        console.log(nextPage, searchString);
+        let data = await fetch(`http://localhost:5000/book?limit=${LIMIT}&offset=${nextPage}&searchString=${searchString}&sortBy=${sortDate}`)
         const result = await data.json();
         setData({
             books: result.books,
@@ -48,6 +57,12 @@ const page = () => {
         console.log("next page is ", nextPage)
         setPage(nextPage);
         fetchData(nextPage);
+    }
+
+    const handleSortDate = () => {
+        const updatedDateFilter = dateFilter === 'old' ? 'new' : 'old';
+        setDateFilter(updatedDateFilter);
+        fetchData(1, '', updatedDateFilter);
     }
 
     const boxSx = {
@@ -67,7 +82,7 @@ const page = () => {
 
     const cardMediaSx = {
         height: '150px',
-        backgroundSize: 'contain',
+        objectFit: 'contain',
         backgroundColor: '#282C35'
     }
 
@@ -103,48 +118,85 @@ const page = () => {
     const renderAuthors = (authors: string[]) => {
         if (authors.length < 2) {
             return (
-                <>
+                <Typography component={'div'} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '260px' }}>
                     {authors.map((current, index) => (
-                        <Typography component={'span'}>
-                            {current} <span style={{ fontSize: '15px', height: '50px', width: '50px' }}>&#183;</span> &nbsp;
-                        </Typography>
+                        // <Typography component={'span'} key={index}>
+                        <>
+                            {current} <span> &#183;</span>
+                        </>
+                        // </Typography>
                     ))}
-                </>
+                </Typography >
             )
 
         } else {
             return (
                 <>
-                    <Typography component={'span'}>
-                        {authors[0]} &#183; &nbsp;
+                    <Typography component={'div'} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '260px' }}>
+                        {authors[0]} &#183; &nbsp;{authors[1]}...
                     </Typography>
-                    <Typography component={'span'}>
-                        {authors[1]}...
-                    </Typography>
+                    {/* <Typography component={'span'}>
+
+                    </Typography> */}
                 </>
             )
         }
     }
 
     const SearchBar = () => {
+        const [searchString, setSearchString] = useState('');
+
+        const debouncer = (executable: Function, delay: number) => {
+            let timer: ReturnType<typeof setInterval> | null = null;
+            return (...args: any[]) => {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+                timer = setTimeout(() => {
+                    executable(...args);
+                }, delay)
+            }
+        }
+
+        const searchBookTitle = (searchString: string) => {
+            fetchData(1, searchString);
+            setSearchString('')
+        }
+        const handleSearchString = (event: React.ChangeEvent<HTMLInputElement>) => {
+            setSearchString(event?.target.value);
+            debouncerWrapper.current(event.target.value);
+        }
+        const debouncerWrapper = useRef(debouncer(searchBookTitle, 1500));
         return (
-            <Box>
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                height: '40px',
+                backgroundColor: 'white',
+                color: 'black',
+                border: '10px solid white',
+                borderRadius: '40px'
+            }}>
                 <SearchIcon />
                 <InputBase placeholder='Search...' inputProps={{ "aria-label": 'search' }} sx={{
                     padding: '8px 8px 8px 0px',
+                    backgroundColor: 'white',
+                    height: '35px'
 
-                }} />
+                }}
+                    value={searchString}
+                    onChange={handleSearchString}
+                />
             </Box>
         )
     }
 
     return (
         <Box sx={boxSx}>
-            <Box sx={{ display: 'flex', columnGap: 1 }}>
-                <Button>
-                    Old to New
+            <Box sx={{ display: 'flex', columnGap: 1, mt: 2, mr: 1, justifyContent: 'end' }}>
+                <Button onClick={handleSortDate} sx={{ backgroundColor: '#4D4855', color: 'white' }}>
+                    {dateFilter === 'old' ? 'Old to New' : 'New to Old'}
                 </Button>
-                <Button> A-Z ⬆️ | Z-A ⬇️</Button>
                 <SearchBar />
             </Box >
             <Box sx={{ display: 'flex', flexDirection: 'flow', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -156,7 +208,8 @@ const page = () => {
                                 <CardMedia
                                     sx={cardMediaSx}
                                     title={book.title}
-                                    image={book.thumbnailUrl || ""}
+                                    image={book.thumbnailUrl || notFoundImage}
+                                    component={'img'}
                                 />
                                 <CardContent sx={cardContentSx}>
                                     <Typography sx={{ fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
