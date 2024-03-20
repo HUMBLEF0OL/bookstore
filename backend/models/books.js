@@ -23,7 +23,7 @@ const bookSchema = new Schema({
     longDescription: String,
     status: String,
     authors: [String],
-    category: [String],
+    categories: [String],
 
 })
 
