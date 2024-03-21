@@ -33,13 +33,9 @@ const page = () => {
     useEffect(() => {
         fetchData();
     }, [])
-    useEffect(() => {
-        console.log(data);
-    }, [data])
 
 
     const fetchData = async (nextPage = 1, searchString = '', sortDate = 'old') => {
-        // debugger
         console.log(nextPage, searchString);
         let data = await fetch(`http://localhost:5000/book?limit=${LIMIT}&offset=${nextPage}&searchString=${searchString}&sortBy=${sortDate}`)
         const result = await data.json();

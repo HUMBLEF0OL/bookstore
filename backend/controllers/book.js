@@ -7,11 +7,13 @@ const getAllBooks = async (req, res) => {
     const limit = parseInt(req.query.limit) || 12;
     const offset = parseInt(req.query.offset) || 1;
     const searchString = req.query.searchString || '';
+    const sort = req.query.sortBy === 'old' ? 1 : -1;
 
+    console.log("sort order is ", sort)
     try {
         // count total number of pages
         const totalCount = await Book.countDocuments();
-        const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: 1 }).skip((offset - 1) * limit).limit(limit);
+        const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
         res.json({ totalCount, books });
     } catch (err) {
         res.status(404).json(err);
@@ -44,7 +46,10 @@ const getBookByIsbn = async (req, res) => {
         if (!result) {
             res.status(404).send("Book Not Found!");
         } else {
-            res.send(result);
+            res.send({
+                result: result[0],
+                status: 200
+            });
         }
     }
 }
@@ -67,7 +72,7 @@ const postBook = async (req, res) => {
 
 const updateBook = async (req, res) => {
     try {
-        console.log("updating document with isbn:", req.params.isbn);
+        console.log("updating document with isbn:", req.body);
         const result = await Book.findOneAndUpdate({ isbn: req.params.isbn }, req.body)
         if (!result) {
             res.status(404).send("Failed to Update the book!");
@@ -81,9 +86,10 @@ const updateBook = async (req, res) => {
 }
 
 const deleteBook = async (req, res) => {
+    console.log("inside the deleteBook");
     try {
-        console.log("deleting the document with isbn: ", req, params.isbn);
-        const result = await Book.findByIdAndDelete({ isbn: req.params.isbn })
+        console.log("deleting the document with isbn: ", req.params.isbn);
+        const result = await Book.findOneAndDelete({ isbn: req.params.isbn })
         if (!result) {
             res.status(404).send("Failed to Delete the book!");
         } else {
