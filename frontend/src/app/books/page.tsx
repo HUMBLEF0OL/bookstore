@@ -33,9 +33,6 @@ const page = () => {
     useEffect(() => {
         fetchData();
     }, [])
-    useEffect(() => {
-        console.log(data);
-    }, [data])
 
 
     const fetchData = async (nextPage = 1, searchString = '', sortDate = 'old') => {

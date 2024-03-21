@@ -44,7 +44,10 @@ const getBookByIsbn = async (req, res) => {
         if (!result) {
             res.status(404).send("Book Not Found!");
         } else {
-            res.send(result);
+            res.send({
+                result: result[0],
+                status: 200
+            });
         }
     }
 }
@@ -67,7 +70,7 @@ const postBook = async (req, res) => {
 
 const updateBook = async (req, res) => {
     try {
-        console.log("updating document with isbn:", req.params.isbn);
+        console.log("updating document with isbn:", req.body);
         const result = await Book.findOneAndUpdate({ isbn: req.params.isbn }, req.body)
         if (!result) {
             res.status(404).send("Failed to Update the book!");
@@ -81,9 +84,10 @@ const updateBook = async (req, res) => {
 }
 
 const deleteBook = async (req, res) => {
+    console.log("inside the deleteBook");
     try {
-        console.log("deleting the document with isbn: ", req, params.isbn);
-        const result = await Book.findByIdAndDelete({ isbn: req.params.isbn })
+        console.log("deleting the document with isbn: ", req.params.isbn);
+        const result = await Book.findOneAndDelete({ isbn: req.params.isbn })
         if (!result) {
             res.status(404).send("Failed to Delete the book!");
         } else {
