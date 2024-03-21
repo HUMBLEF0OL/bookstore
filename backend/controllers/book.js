@@ -7,11 +7,13 @@ const getAllBooks = async (req, res) => {
     const limit = parseInt(req.query.limit) || 12;
     const offset = parseInt(req.query.offset) || 1;
     const searchString = req.query.searchString || '';
+    const sort = req.query.sortBy === 'old' ? 1 : -1;
 
+    console.log("sort order is ", sort)
     try {
         // count total number of pages
         const totalCount = await Book.countDocuments();
-        const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: 1 }).skip((offset - 1) * limit).limit(limit);
+        const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
         res.json({ totalCount, books });
     } catch (err) {
         res.status(404).json(err);
