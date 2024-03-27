@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bookRouter = require('./routes/book')
+const userRouter = require('./routes/user')
 const cors = require('cors')
 
 const app = express();
@@ -24,6 +25,8 @@ app.get('/', (req, res) => {
 })
 
 app.use('/book', bookRouter)
+
+app.use(userRouter);
 
 app.get((req, res) => {
     res.status(404).send("Not Found")
