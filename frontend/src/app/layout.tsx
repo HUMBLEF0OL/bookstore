@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Common/Header";
+import { Box } from "@mui/material";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,14 @@ export default function RootLayout({
       <body className={inter.className}>
 
         <Header />
-        {children}
+        <Box sx={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          {children}
+        </Box>
       </body>
     </html>
   );
