@@ -1,12 +1,16 @@
-import { AppBar, Box, Button, IconButton, Toolbar, Typography } from '@mui/material'
-import React from 'react'
+"use client"
+import { AppBar, Box, Toolbar, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Link from 'next/link';
+import { hasCookie } from 'cookies-next';
 
 /*
     primary:
 */
 const Header = () => {
+    const [authToken, setAuthToken] = useState(hasCookie('authToken'));
+
     const toolbarSx = {
         backgroundColor: 'white',
         justifyContent: 'space-between',
@@ -74,7 +78,7 @@ const Header = () => {
                                 BOOKS
                             </Typography>
                         </Link>
-                        <Link href={'/create'}>
+                        {/* <Link href={'/create'}>
                             <Typography sx={linkSx}>
                                 ADD BOOKS
                             </Typography>
@@ -83,7 +87,7 @@ const Header = () => {
                             <Typography sx={linkSx}>
                                 UPDATE BOOK
                             </Typography>
-                        </Link>
+                        </Link> */}
 
                     </Box>
                 </Toolbar>
