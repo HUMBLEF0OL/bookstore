@@ -3,6 +3,7 @@ import { AppBar, Box, Button, Card, CardActions, CardContent, CardMedia, InputBa
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search';
+import { makeCall } from '@/services/api.service';
 
 type bookType = {
     _id: string,
@@ -36,9 +37,12 @@ const page = () => {
 
 
     const fetchData = async (nextPage = 1, searchString = '', sortDate = 'old') => {
-        console.log(nextPage, searchString);
-        let data = await fetch(`http://localhost:5000/book?limit=${LIMIT}&offset=${nextPage}&searchString=${searchString}&sortBy=${sortDate}`)
-        const result = await data.json();
+        const result = await makeCall({
+            url: `book?limit=${LIMIT}&offset=${nextPage}&searchString=${searchString}&sortBy=${sortDate}`,
+            method: 'GET',
+
+        });
+        // const setCookieHeaders = resp?.headers?.getAll('Set-Cookie');
         setData({
             books: result.books,
             count: result.totalCount

@@ -1,5 +1,6 @@
 "use client"
 import { bookDataProps } from '@/app/books/[isbn]/page';
+import { makeCall } from '@/services/api.service';
 import { Button, Grid, TextField, TextareaAutosize, Typography } from '@mui/material';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
@@ -12,8 +13,12 @@ const page = () => {
     }, [])
 
     const fetchData = async () => {
-        let data = await fetch(`http://localhost:5000/book/isbn/${params.isbn}`)
-        const result = await data.json();
+        // let data = await fetch(`http://localhost:5000/book/isbn/${params.isbn}`)
+        // const result = await data.json();
+        const result = await makeCall({
+            url: `book/isbn/${params.isbn}`,
+            method: 'GET'
+        })
         setBookData(result.result);
     }
 
@@ -61,15 +66,14 @@ const page = () => {
         if (bookData) {
             const { _id, ...rest } = bookData;
             console.log(rest);
-            let data = await fetch(`http://localhost:5000/book/updatebook/${params.isbn}`, {
+            await makeCall({
+                url: `book/updatebook/${params.isbn}`,
                 method: 'PATCH',
-                body: JSON.stringify(rest),
+                body: rest,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
-            const result = await data.json();
-
         }
     }
 

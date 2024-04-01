@@ -7,6 +7,8 @@ const userSignUp = async (req, res) => {
     try {
         const result = await User.create({ email, password })
         if (result) {
+            // create jwt token
+
             res.json(result);
         } else {
             res.status(400).json({ result: "Failed to create User" })

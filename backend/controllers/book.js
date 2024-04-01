@@ -14,6 +14,8 @@ const getAllBooks = async (req, res) => {
         // count total number of pages
         const totalCount = await Book.countDocuments();
         const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
+        // res.cookie('jwt', 'test');
+        // console.log("cookies received are: ", req?.cookie?.Cookie_1)
         res.json({ totalCount, books });
     } catch (err) {
         res.status(404).json(err);
