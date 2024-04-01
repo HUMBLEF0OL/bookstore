@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const { generateToken } = require('../services/auth.service');
 
 
 const userSignUp = async (req, res) => {
@@ -8,8 +9,8 @@ const userSignUp = async (req, res) => {
         const result = await User.create({ email, password })
         if (result) {
             // create jwt token
-
-            res.json(result);
+            const tokenInfo = generateToken(email);
+            res.json(tokenInfo);
         } else {
             res.status(400).json({ result: "Failed to create User" })
         }
@@ -22,8 +23,9 @@ const userSignUp = async (req, res) => {
 const userLogin = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const result = await User.login(email, password)
-        res.json(result);
+        await User.login(email, password)
+        const tokenInfo = generateToken(email);
+        res.json(tokenInfo);
     } catch (err) {
         res.status(400).json({
             result: err.message,

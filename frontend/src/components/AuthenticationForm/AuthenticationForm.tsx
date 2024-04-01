@@ -1,11 +1,15 @@
 "use client"
+import { makeCall } from '@/services/api.service';
 import { Box, Button, TextField, Typography } from '@mui/material'
+import { setCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
 const AuthenticationForm = ({ mode = 'login' }: { mode: 'login' | 'signup' }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('')
     const [error, setError] = useState<{ email: string, password: string }>({ email: '', password: '' })
+    const router = useRouter();
 
     const containerSx = {
         mt: '24px',
@@ -54,8 +58,6 @@ const AuthenticationForm = ({ mode = 'login' }: { mode: 'login' | 'signup' }) =>
 
     const validatePassword = () => {
         let errorMessage = '';
-        debugger
-        debugger
         if (password === '') {
             errorMessage = "Password can't be empty";
         } else if (password.length < 6) {
@@ -84,16 +86,17 @@ const AuthenticationForm = ({ mode = 'login' }: { mode: 'login' | 'signup' }) =>
         const emailErr = !validateEmail();
         const passwordErr = !validatePassword();
         if (!emailErr && !passwordErr) {
-            const result = await fetch(`http://localhost:5000/${mode}`, {
+            const result = await makeCall({
+                url: `${mode}`,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    email, password
-                })
+                key: mode,
+                body: { email, password }
             })
-            console.log(result);
+            setCookie('authToken', result?.token, { maxAge: result?.expiresIn })
+            router.push('books');
         }
     }
 
