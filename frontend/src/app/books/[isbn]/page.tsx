@@ -1,4 +1,5 @@
 "use client"
+import { makeCall } from '@/services/api.service';
 import { Box, Button, Grid, Typography } from '@mui/material';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation'
@@ -29,8 +30,10 @@ const page = () => {
     }, [])
 
     const fetchData = async () => {
-        let data = await fetch(`http://localhost:5000/book/isbn/${params.isbn}`)
-        const result = await data.json();
+        const result = await makeCall({
+            url: `book/isbn/${params.isbn}`,
+            method: 'GET'
+        })
         setBookData(result.result);
     }
 
