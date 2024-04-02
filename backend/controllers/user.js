@@ -10,6 +10,7 @@ const userSignUp = async (req, res) => {
         if (result) {
             // create jwt token
             const tokenInfo = generateToken(email);
+            console.log("tokenInfo is ", tokenInfo);
             res.json(tokenInfo);
         } else {
             res.status(400).json({ result: "Failed to create User" })
