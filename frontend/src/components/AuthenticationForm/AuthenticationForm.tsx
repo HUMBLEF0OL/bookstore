@@ -96,7 +96,7 @@ const AuthenticationForm = ({ mode = 'login' }: { mode: 'login' | 'signup' }) =>
                 body: { email, password }
             })
             setCookie('authToken', result?.token, { maxAge: result?.expiresIn })
-            router.push('books');
+            router.push('/books');
         }
     }
 

@@ -4,6 +4,7 @@ const bookRouter = require('./routes/book')
 const userRouter = require('./routes/user')
 const cors = require('cors')
 const cookieParser = require('cookie-parser');
+const { verifyToken } = require('./services/auth.service');
 
 
 const app = express();
@@ -33,7 +34,7 @@ app.get('/', (req, res) => {
     res.send('Application route')
 })
 
-app.use('/book', bookRouter)
+app.use('/book', verifyToken, bookRouter)
 
 app.use(userRouter);
 
