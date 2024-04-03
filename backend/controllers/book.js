@@ -1,6 +1,50 @@
 const { isValidObjectId } = require('mongoose');
 const mongoose = require('mongoose')
 const Book = require('../models/books');
+const redis = require('redis');
+
+
+const connectRedis = async () => {
+    const client = redis.createClient({ url: 'redis://localhost:6379' });
+
+    client.on('error', err => {
+        console.log("redis connection failed");
+    }).on("ready", () => {
+        console.log("redis is ready to server")
+    })
+    await client.connect();
+
+    return client;
+}
+
+const findInCache = async (limit, offset, searchString, sort) => {
+    try {
+        const client = await connectRedis();
+        console.log("fetching data from cache")
+        const result = await client.get('books')
+        console.log("-------------------------------", result);
+        if (result) {
+            console.log("restored data is ", result);
+            return JSON.parse(result);
+        } else {
+            const totalCount = await Book.countDocuments();
+            const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
+            // res.cookie('jwt', 'test');
+            // console.log("cookies received are: ", req?.cookie?.Cookie_1)
+            const queryResult = { totalCount, books };
+            await client.set('books', JSON.stringify(queryResult), (err, result) => {
+                if (err) {
+                    console.log("failed to save data in cache");
+                } else {
+                    console.log("faved data in cahce with message: ", result)
+                }
+            })
+            return queryResult;
+        }
+    } catch (err) {
+        throw err;
+    }
+}
 
 const getAllBooks = async (req, res) => {
     console.log("fetching all books")
@@ -9,14 +53,21 @@ const getAllBooks = async (req, res) => {
     const searchString = req.query.searchString || '';
     const sort = req.query.sortBy === 'old' ? 1 : -1;
 
-    console.log("sort order is ", sort)
+    // console.log("sort order is ", sort)
+    // try {
+    //     // count total number of pages
+    //     const totalCount = await Book.countDocuments();
+    //     const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
+    //     // res.cookie('jwt', 'test');
+    //     // console.log("cookies received are: ", req?.cookie?.Cookie_1)
+    //     res.json({ totalCount, books });
+    // } catch (err) {
+    //     res.status(404).json(err);
+    // }
     try {
-        // count total number of pages
-        const totalCount = await Book.countDocuments();
-        const books = await Book.find({ title: { $regex: searchString, $options: 'i' } }).sort({ publishedDate: sort }).skip((offset - 1) * limit).limit(limit);
-        // res.cookie('jwt', 'test');
-        // console.log("cookies received are: ", req?.cookie?.Cookie_1)
-        res.json({ totalCount, books });
+        const result = await findInCache(limit, offset, searchString, sort);
+        console.log("received result is -----", result);
+        res.json(result);
     } catch (err) {
         res.status(404).json(err);
     }

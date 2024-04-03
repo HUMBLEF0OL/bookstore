@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const bookRouter = require('./routes/book')
 const userRouter = require('./routes/user')
 const cors = require('cors')
+// const redis = require('redis');
+const { createClient } = require('redis');
+
 const cookieParser = require('cookie-parser');
 const { verifyToken } = require('./services/auth.service');
 
@@ -19,10 +22,21 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
+// const client = redis.createClient(6379);
+
 
 mongoose.connect('mongodb://0.0.0.0:27017/bookstore', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("database connected")
+
+        console.log("connecting to redis");
+        const dummyFunction = async () => {
+            let client = createClient({ url: 'redis://localhost:6379' });
+            await client.connect();
+            await client.set('testKey', "dummyData");
+        }
+        dummyFunction();
+
         app.listen(5000, () => {
             console.log("ready to server on 5000")
         })
